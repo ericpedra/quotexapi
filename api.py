@@ -8,8 +8,9 @@ import ssl
 import atexit
 from collections import deque
 from quotexapi.http.login import Login
+from quotexapi.http.logout import Logout
 from quotexapi.ws.chanels.ssid import Ssid
-from iqoptionapi.ws.client import WebsocketClient
+from quotexapi.ws.client import WebsocketClient
 import quotexapi.global_value as global_value
 from collections import defaultdict
 
@@ -63,7 +64,7 @@ class Quotex(object):  # pylint: disable=too-many-instance-attributes
         """Send http request to Qoutex server.
 
         :param resource: The instance of
-            :class:`Resource <iqoptionapi.http.resource.Resource>`.
+            :class:`Resource <Qoutex.http.resource.Resource>`.
         :param str method: The http request method.
         :param dict data: (optional) The http request data.
         :param dict params: (optional) The http request params.
@@ -151,9 +152,124 @@ class Quotex(object):  # pylint: disable=too-many-instance-attributes
 
     @property
     def login(self):
-        """Property for get IQ Option http login resource.
+        """Property for get Qoutex http login resource.
 
         :returns: The instance of :class:`Login
             <Qoutex.http.login.Login>`.
         """
         return Login(self)
+
+    @property
+    def ssid(self):
+        """Property for get Qoutex websocket ssid chanel.
+        :returns: The instance of :class:`Ssid
+            <Qoutex.ws.chanels.ssid.Ssid>`.
+        """
+        return Ssid(self)
+
+    # -------------------------------------------------------
+
+    def set_session(self,cookies,headers):
+
+        """Method to set session cookies."""
+
+        self.session.headers.update(headers)
+         
+        self.session.cookies.clear_session_cookies()
+        requests.utils.add_dict_to_cookiejar(self.session.cookies, cookies)
+
+    def start_websocket(self):
+        global_value.check_websocket_if_connect = None
+        global_value.check_websocket_if_error=False
+        global_value.websocket_error_reason=None
+         
+        self.websocket_client = WebsocketClient(self)
+
+        self.websocket_thread = threading.Thread(target=self.websocket.run_forever, kwargs={'sslopt': {
+                                                 "check_hostname": False, "cert_reqs": ssl.CERT_NONE, "ca_certs": "cacert.pem"},
+                                                 "pingInterval": 25000})  # for fix pyinstall error: cafile, capath and cadata cannot be all omitted
+        self.websocket_thread.daemon = True
+        self.websocket_thread.start()
+        while True:
+            try:
+                if global_value.check_websocket_if_error:
+                    return False,global_value.websocket_error_reason
+                if global_value.check_websocket_if_connect == 0 :
+                    return False,"Websocket connection closed."
+                elif global_value.check_websocket_if_connect == 1:
+                    return True,None
+            except:
+                pass
+
+            pass
+
+    def send_ssid(self):
+        self.profile.msg=None
+        self.ssid(global_value.SSID)  # pylint: disable=not-callable
+        while self.profile.msg==None:
+            pass
+        if self.profile.msg==False:
+            return False
+        else:
+            return True
+
+    def connect(self):
+        
+        global_value.ssl_Mutual_exclusion=False
+        global_value.ssl_Mutual_exclusion_write=False
+        """Method for connection to Qoutex API."""
+        try:
+            self.close()
+        except:
+            pass
+        check_websocket,websocket_reason=self.start_websocket()
+         
+        if check_websocket==False:
+            return check_websocket,websocket_reason
+
+        #doing temp ssid reconnect for speed up
+        if global_value.SSID!=None:
+            
+            check_ssid=self.send_ssid()
+           
+            if check_ssid==False:
+                #ssdi time out need reget,if sent error ssid,the weksocket will close by Qoutex server
+                response=self.get_ssid()
+                try:
+                    global_value.SSID = response.cookies["ssid"]     
+                except:
+                    return False,response.text
+                atexit.register(self.logout)
+                self.start_websocket()
+                self.send_ssid()
+         
+        #the ssid is None need get ssid
+        else:
+            response=self.get_ssid()
+            try:
+               global_value.SSID = response.cookies["ssid"]
+            except:
+                self.close()
+                return False,response.text
+            atexit.register(self.logout)
+            self.send_ssid()
+        
+        #set ssis cookie
+        requests.utils.add_dict_to_cookiejar(self.session.cookies, {"ssid":global_value.SSID})
+        
+
+        self.timesync.server_timestamp = None
+        while True:
+            try:
+                if self.timesync.server_timestamp != None:
+                    break
+            except:
+                pass
+        return True,None
+
+    def close(self):
+        self.websocket.close()
+        self.websocket_thread.join()
+    
+    def websocket_alive(self):
+        return self.websocket_thread.is_alive()
