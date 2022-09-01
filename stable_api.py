@@ -7,6 +7,10 @@ class Quotex:
         self.size = [1, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800,
                     3600, 7200, 14400, 28800, 43200, 86400, 604800, 2592000]
         self.set_ssid = set_ssid
+        self.suspend = 0.5
+        # --start
+        # self.connect()
+        # this auto function delay too long
    
    def change_account(self, Balance_MODE):
         """Change active account `real` or `practice`"""
