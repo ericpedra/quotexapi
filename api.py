@@ -44,17 +44,14 @@ class Quotex(object):  # pylint: disable=too-many-instance-attributes
         """
         return self.websocket_client.wss
 
-    def send_websocket_request(self, name, msg, request_id="",no_force_send=True):
+    def send_websocket_request(self, data):
         """Send websocket request to Qoutex server.
-
-        :param str name: The websocket request name.
-        :param dict msg: The websocket request msg.
+        :param str data: The websocket request data.
         """
         
         logger = logging.getLogger(__name__)
 
-        data = json.dumps(dict(name=name,
-                               msg=msg, request_id=request_id))
+
          
          
         while (global_value.ssl_Mutual_exclusion or global_value.ssl_Mutual_exclusion_write) and no_force_send:
