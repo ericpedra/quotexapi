@@ -1,13 +1,15 @@
 # quotexapi
 Quotex API  
-https://autotradevip.com/en/  
+Website    : https://autotradevip.com/en/  
 Olmyptrade : https://youtu.be/zTZT7zDlmtU  
 Binomo     : https://youtu.be/ww9rVMX5TK4  
 IQ Option  : https://youtu.be/4i3YUEDRGWY  
 Quotex     : https://www.youtube.com/channel/UCCqnm8XHUoc0Ude78RJwmoA
 
 ### Import
+```python
 from quotexapi.stable_api import IQ_Option
+```
 
 ### Login by ssid
 if connect sucess return True,None  
