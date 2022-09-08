@@ -9,7 +9,7 @@ Expert Option     : https://www.youtube.com/channel/UCCqnm8XHUoc0Ude78RJwmoA
 
 ### Import
 ```python
-from quotexapi.stable_api import IQ_Option
+from quotexapi.stable_api import Quotex
 ```
 
 ### Login by ssid
