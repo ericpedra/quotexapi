@@ -15,7 +15,7 @@ from quotexapi.stable_api import Quotex
 ### Login by ssid
 if connect sucess return True,None  
 
-if connect fail return False,reason  
+if connect fail return False,None  
 ```python
 from quotexapi.stable_api import Quotex
 ssid="""42["authorization",{"session":"0psCurV1ZiFDheOPZbsuPnCscxtZh7veewewqewqewq","isDemo":0}]"""
