@@ -38,14 +38,22 @@ class WebsocketClient(object):
     def on_message(self, message): # pylint: disable=unused-argument
         """Method to process websocket messages."""
         global_value.ssl_Mutual_exclusion=True
-        logger = logging.getLogger(__name__)
-        message = message[1:]
-        message = message.decode('utf-8')
-        logger.debug(message)
-        
-
-        message = json.loads(str(message))
-        print(message)
+        try:
+            logger = logging.getLogger(__name__)
+            message = massage
+            try:
+                message = message[1:]
+                message = message.decode('utf-8')
+                logger.debug(message)
+                message = json.loads(str(message))
+                try:
+                     self.api.buy_id= message["id"]
+                except:
+                    pass
+            except:
+                pass
+        except:
+            pass
         global_value.ssl_Mutual_exclusion=False
 
 
