@@ -26,6 +26,7 @@ class Quotex(object):  # pylint: disable=too-many-instance-attributes
      
     # pylint: disable=too-many-public-methods
     socket_option_opened={}
+    buy_id = None
     def __init__(self, host, set_ssid):
         """
         :param str host: The hostname or ip address of a Qoutex server.
